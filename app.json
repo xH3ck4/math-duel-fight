@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Math Duel",
+    "slug": "math-duel-fight",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mathduel.fight"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F2A52"
+      },
+      "package": "com.mathduel.fight",
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-status-bar",
+      "expo-audio",
+      "expo-font",
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0F2A52",
+          "image": "./assets/logo-game.png",
+          "imageWidth": 240,
+          "resizeMode": "contain"
+        }
+      ],
+      "expo-video"
+    ]
+  }
+}

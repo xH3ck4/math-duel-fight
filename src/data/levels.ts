@@ -1,0 +1,88 @@
+import type { LevelInfo } from '../types/game';
+
+export const LEVELS: LevelInfo[] = [
+  {
+    id: 1,
+    name: 'Penjumlahan',
+    icon: '➕',
+    description: 'Jumlahkan angka dengan cepat dan tepat.',
+    category: 'addition',
+    difficulty: 'easy',
+    questionCount: 10,
+    unlockRequirement: null,
+  },
+  {
+    id: 2,
+    name: 'Pengurangan',
+    icon: '➖',
+    description: 'Kurangkan angka tanpa hasil negatif.',
+    category: 'subtraction',
+    difficulty: 'easy',
+    questionCount: 10,
+    unlockRequirement: 1,
+  },
+  {
+    id: 3,
+    name: 'Perkalian',
+    icon: '✖️',
+    description: 'Kuasai perkalian dasar kelas 5 SD.',
+    category: 'multiplication',
+    difficulty: 'normal',
+    questionCount: 10,
+    unlockRequirement: 2,
+  },
+  {
+    id: 4,
+    name: 'Pembagian',
+    icon: '➗',
+    description: 'Bagi angka hingga hasilnya bulat.',
+    category: 'division',
+    difficulty: 'normal',
+    questionCount: 10,
+    unlockRequirement: 3,
+  },
+  {
+    id: 5,
+    name: 'Operasi Campuran',
+    icon: '🔀',
+    description: 'Gabungan penjumlahan, pengurangan, dan perkalian.',
+    category: 'mixed',
+    difficulty: 'normal',
+    questionCount: 10,
+    unlockRequirement: 4,
+  },
+  {
+    id: 6,
+    name: 'Pecahan',
+    icon: '🍕',
+    description: 'Hitung pecahan sederhana dengan tepat.',
+    category: 'fraction',
+    difficulty: 'hard',
+    questionCount: 10,
+    unlockRequirement: 5,
+  },
+  {
+    id: 7,
+    name: 'Desimal',
+    icon: '🔢',
+    description: 'Operasi bilangan desimal kelas 5.',
+    category: 'decimal',
+    difficulty: 'hard',
+    questionCount: 10,
+    unlockRequirement: 6,
+  },
+  {
+    id: 8,
+    name: 'Soal Cerita',
+    icon: '📖',
+    description: 'Pahami cerita lalu hitung jawabannya.',
+    category: 'story',
+    difficulty: 'hard',
+    questionCount: 10,
+    unlockRequirement: 7,
+  },
+];
+
+export function getLevelById(id: number): LevelInfo {
+  return LEVELS.find((l) => l.id === id) ?? LEVELS[0];
+}

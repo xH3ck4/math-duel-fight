@@ -6,6 +6,7 @@ import { SplashScreen } from '../screens/SplashScreen/SplashScreen';
 import { MainMenuScreen } from '../screens/MainMenuScreen/MainMenuScreen';
 import { ModeSelectionScreen } from '../screens/ModeSelectionScreen/ModeSelectionScreen';
 import { LevelSelectionScreen } from '../screens/LevelSelectionScreen/LevelSelectionScreen';
+import { MaterialScreen } from '../screens/MaterialScreen/MaterialScreen';
 import { CharacterSelectionScreen } from '../screens/CharacterSelectionScreen/CharacterSelectionScreen';
 import { PlayerSetupScreen } from '../screens/PlayerSetupScreen/PlayerSetupScreen';
 import { BattleScreen } from '../screens/BattleScreen/BattleScreen';
@@ -34,6 +35,7 @@ export function AppNavigator() {
         <Stack.Screen name="MainMenu" component={MainMenuScreen} />
         <Stack.Screen name="ModeSelection" component={ModeSelectionScreen} />
         <Stack.Screen name="LevelSelection" component={LevelSelectionScreen} />
+        <Stack.Screen name="Material" component={MaterialScreen} />
         <Stack.Screen name="CharacterSelection" component={CharacterSelectionScreen} />
         <Stack.Screen name="PlayerSetup" component={PlayerSetupScreen} />
         <Stack.Screen name="Battle" component={BattleScreen} options={{ gestureEnabled: false }} />

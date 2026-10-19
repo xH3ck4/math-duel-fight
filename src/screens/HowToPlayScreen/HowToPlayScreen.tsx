@@ -10,14 +10,12 @@ import { colors, radius, shadows, spacing, typography } from '../../theme';
 type Props = NativeStackScreenProps<RootStackParamList, 'HowToPlay'>;
 
 const STEPS = [
-  { icon: '👤', title: 'Pilih karakter', desc: 'Pilih pejuang matematika favoritmu.' },
-  { icon: '📚', title: 'Pilih level', desc: 'Mulai dari penjumlahan hingga soal cerita.' },
-  { icon: '🔄', title: 'Tunggu giliran', desc: 'Player 1 dan Player 2 bermain bergantian.' },
-  { icon: '🧮', title: 'Baca soal', desc: 'Perhatikan soal dan hitung dengan teliti.' },
-  { icon: '✅', title: 'Pilih jawaban', desc: 'Ketuk salah satu dari 4 pilihan.' },
-  { icon: '💥', title: 'Jawaban benar', desc: 'Kamu menyerang lawan dan HP-nya berkurang.' },
-  { icon: '💔', title: 'Jawaban salah', desc: 'Kamu terkena self-damage.' },
-  { icon: '🏆', title: 'Menang', desc: 'Habiskan HP lawan untuk meraih kemenangan!' },
+  { icon: '👤', title: 'Pilih & Kustom Karakter', desc: 'Gunakan namamu sendiri dan pilih warna pejuang pecahan favoritmu.' },
+  { icon: '📚', title: 'Pilih Level Pecahan', desc: 'Semua 8 level terbuka bebas tanpa terkunci untuk kamu jelajahi.' },
+  { icon: '📖', title: 'Pelajari Materi & Video', desc: 'Wajib akses materi konsep dan tonton video penjelasan sebelum duel!' },
+  { icon: '📐', title: 'Format Hitung Menurun', desc: 'Soal pecahan disajikan bersusun menurun agar mudah dihitung.' },
+  { icon: '⏱️', title: 'Waktu Bertarung', desc: 'Tersedia 1 menit untuk soal standar dan 2 menit untuk soal cerita numerasi.' },
+  { icon: '💥', title: 'Serang Lawan!', desc: 'Jawaban benar melancarkan serangan. Habiskan HP musuh untuk menang!' },
 ];
 
 export function HowToPlayScreen({ navigation }: Props) {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useEventListener } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -46,7 +46,7 @@ export function SplashScreen({ navigation }: Props) {
   const frameHeight = frameWidth / TARGET_RATIO;
 
   return (
-    <View style={styles.container}>
+    <Pressable style={styles.container} onPress={goMenu}>
       <View style={[styles.frame, { width: frameWidth, height: Math.min(frameHeight, height) }]}>
         <VideoView
           style={styles.video}
@@ -56,7 +56,10 @@ export function SplashScreen({ navigation }: Props) {
           fullscreenOptions={{ enable: false }}
         />
       </View>
-    </View>
+      <Pressable style={styles.skipBtn} onPress={goMenu} accessibilityLabel="Lewati intro">
+        <Text style={styles.skipText}>Lewati ⏭</Text>
+      </Pressable>
+    </Pressable>
   );
 }
 
@@ -74,5 +77,21 @@ const styles = StyleSheet.create({
   video: {
     width: '100%',
     height: '100%',
+  },
+  skipBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    backgroundColor: 'rgba(15, 42, 82, 0.75)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.gold,
+  },
+  skipText: {
+    color: colors.gold,
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

@@ -11,6 +11,8 @@ interface PlayerState {
   setPlayerName: (name: string) => Promise<void>;
   applyBattleResult: (result: BattleResult, localPlayer: 'player1' | 'player2') => Promise<string[]>;
   unlockLevel: (levelId: number) => Promise<void>;
+  markMaterialViewed: (levelId: number) => Promise<void>;
+  hasViewedMaterial: (levelId: number) => boolean;
   resetProgress: () => Promise<void>;
   getAccuracy: () => number;
 }
@@ -56,7 +58,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   hydrated: false,
 
   hydrate: async () => {
-    const profile = await StorageService.loadProfile();
+    const loaded = await StorageService.loadProfile();
+    // Ensure all 8 levels are always unlocked
+    const allLevels = [1, 2, 3, 4, 5, 6, 7, 8];
+    const profile: PlayerProfile = {
+      ...loaded,
+      unlockedLevels: allLevels,
+      viewedMaterials: loaded.viewedMaterials || [],
+    };
     set({ profile, hydrated: true });
   },
 
@@ -73,6 +82,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       set({ profile });
       await StorageService.saveProfile(profile);
     }
+  },
+
+  markMaterialViewed: async (levelId) => {
+    const profile = { ...get().profile };
+    const current = profile.viewedMaterials || [];
+    if (!current.includes(levelId)) {
+      profile.viewedMaterials = [...current, levelId].sort((a, b) => a - b);
+      set({ profile });
+      await StorageService.saveProfile(profile);
+    }
+  },
+
+  hasViewedMaterial: (levelId) => {
+    const current = get().profile.viewedMaterials || [];
+    return current.includes(levelId);
   },
 
   applyBattleResult: async (result, localPlayer) => {

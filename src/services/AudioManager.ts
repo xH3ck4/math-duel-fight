@@ -14,7 +14,11 @@ type BgmKey = 'menu' | 'fight';
 
 const SFX_SOURCES = {
   click: require('../../assets/audio/sfx_click_menu.mp3'),
+  correct: require('../../assets/audio/sfx_correct_answer.mp3'),
+  wrong: require('../../assets/audio/sfx_wrong_answer.mp3'),
   punch: require('../../assets/audio/sfx_punch.mp3'),
+  victory: require('../../assets/audio/sfx_win_the_game.mp3'),
+  defeat: require('../../assets/audio/sfx_lose_the_game.mp3'),
 } as const;
 
 const BGM_SOURCES = {
@@ -24,12 +28,12 @@ const BGM_SOURCES = {
 
 const SFX_MAP: Record<SfxKey, keyof typeof SFX_SOURCES> = {
   click: 'click',
-  correct: 'punch',
-  wrong: 'click',
+  correct: 'correct',
+  wrong: 'wrong',
   attack: 'punch',
   hit: 'punch',
-  victory: 'punch',
-  defeat: 'click',
+  victory: 'victory',
+  defeat: 'defeat',
   countdown: 'click',
 };
 

@@ -15,9 +15,9 @@ export const GAME_CONFIG = {
   } as Record<Difficulty, number>,
 
   TIMER: {
-    easy: 15,
-    normal: 10,
-    hard: 8,
+    easy: 60,
+    normal: 60,
+    hard: 120,
   } as Record<Difficulty, number>,
 
   SCORE: {

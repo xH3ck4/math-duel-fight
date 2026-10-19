@@ -8,7 +8,15 @@ export type QuestionCategory =
   | 'mixed'
   | 'fraction'
   | 'decimal'
-  | 'story';
+  | 'story'
+  | 'fraction_like'
+  | 'fraction_unlike'
+  | 'fraction_mixed'
+  | 'fraction_story'
+  | 'fraction_mult_div'
+  | 'fraction_complex'
+  | 'fraction_story_advanced'
+  | 'fraction_boss';
 
 export type GameMode = 'pvp' | 'pvc';
 
@@ -89,6 +97,7 @@ export interface BattlePlayer {
   id: TurnSide;
   name: string;
   characterId: string;
+  customColor?: string;
   isNpc: boolean;
   hp: number;
   maxHp: number;
@@ -136,6 +145,7 @@ export interface PlayerProfile {
   totalCorrect: number;
   totalWrong: number;
   unlockedLevels: number[];
+  viewedMaterials: number[];
   levelBestScores: Record<string, number>;
   levelStars: Record<string, number>;
   unlockedAchievements: string[];
@@ -157,6 +167,7 @@ export type RootStackParamList = {
   LevelSelection: undefined;
   CharacterSelection: undefined;
   PlayerSetup: undefined;
+  Material: { levelId: number; returnToBattle?: boolean };
   Battle: undefined;
   Result: undefined;
   HowToPlay: undefined;

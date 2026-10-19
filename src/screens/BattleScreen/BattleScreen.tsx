@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BackHandler, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -64,6 +64,18 @@ export function BattleScreen({ navigation }: Props) {
       void AudioManager.playBgm('menu');
     };
   }, []);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      if (gamePhase === 'question' || gamePhase === 'feedback') {
+        pauseGame();
+        return true;
+      }
+      return false;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [gamePhase, pauseGame]);
 
   useEffect(() => {
     if (timerRef.current) {
@@ -207,8 +219,10 @@ export function BattleScreen({ navigation }: Props) {
           <View style={styles.fighters}>
             <CharacterView
               characterId={player1.characterId}
+              customColor={player1.customColor}
+              customName={player1.name}
               facing="right"
-              size={124}
+              size={90}
               isAttacking={attacking && currentTurn === 'player1' && !!feedback?.isCorrect}
               isHit={hitSide === 'player1'}
               isCritical={player1.hp / player1.maxHp <= 0.25}
@@ -216,8 +230,10 @@ export function BattleScreen({ navigation }: Props) {
             />
             <CharacterView
               characterId={player2.characterId}
+              customColor={player2.customColor}
+              customName={player2.name}
               facing="left"
-              size={124}
+              size={90}
               isAttacking={attacking && currentTurn === 'player2' && !!feedback?.isCorrect}
               isHit={hitSide === 'player2'}
               isCritical={player2.hp / player2.maxHp <= 0.25}
@@ -277,20 +293,32 @@ export function BattleScreen({ navigation }: Props) {
 
         <FeedbackModal visible={gamePhase === 'feedback'} feedback={feedback} />
 
-        <Modal visible={gamePhase === 'paused'} transparent animationType="fade">
+        <Modal
+          visible={gamePhase === 'paused'}
+          transparent
+          animationType="fade"
+          onRequestClose={resumeGame}
+        >
           <View style={styles.pauseOverlay}>
             <View style={styles.pauseCard}>
-              <Text style={styles.pauseTitle}>PAUSE</Text>
-              <AppButton title="LANJUTKAN" onPress={resumeGame} />
-              <AppButton
-                title="KELUAR KE MENU"
-                variant="danger"
-                onPress={() => {
-                  useGameStore.getState().resetBattle();
-                  void AudioManager.playBgm('menu');
-                  navigation.navigate('MainMenu');
-                }}
-              />
+              <Text style={styles.pauseIcon}>⚔️</Text>
+              <Text style={styles.pauseTitle}>Keluar dari Pertarungan?</Text>
+              <Text style={styles.pauseMessage}>
+                Pertandingan duel sedang berlangsung. Apakah kamu ingin tetap melanjutkan permainan
+                atau keluar ke menu?
+              </Text>
+              <View style={styles.pauseActions}>
+                <AppButton title="Lanjutkan Pertandingan" onPress={resumeGame} />
+                <AppButton
+                  title="Ya, Keluar ke Menu"
+                  variant="danger"
+                  onPress={() => {
+                    useGameStore.getState().resetBattle();
+                    void AudioManager.playBgm('menu');
+                    navigation.navigate('MainMenu');
+                  }}
+                />
+              </View>
             </View>
           </View>
         </Modal>
@@ -358,25 +386,25 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   arena: {
-    height: 230,
+    height: 150,
     justifyContent: 'flex-end',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   spotLight: {
     position: 'absolute',
-    top: 10,
+    top: 6,
     alignSelf: 'center',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: 'rgba(245,197,24,0.08)',
   },
   stageFloor: {
     position: 'absolute',
-    bottom: 28,
+    bottom: 14,
     left: 16,
     right: 16,
-    height: 22,
+    height: 16,
     borderRadius: radius.md,
     backgroundColor: '#152A48',
     borderWidth: 2,
@@ -384,11 +412,11 @@ const styles = StyleSheet.create({
   },
   stageEdge: {
     position: 'absolute',
-    bottom: 22,
+    bottom: 11,
     left: 28,
     right: 28,
-    height: 8,
-    borderRadius: 4,
+    height: 5,
+    borderRadius: 2.5,
     backgroundColor: colors.gold,
     opacity: 0.55,
   },
@@ -396,25 +424,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    paddingBottom: 42,
+    paddingBottom: 20,
   },
   console: {
     flex: 1,
-    marginTop: spacing.sm,
+    marginTop: 2,
   },
   consoleInner: {
     flex: 1,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
-    padding: spacing.md,
-    gap: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    gap: 4,
     borderTopWidth: 3,
     borderColor: colors.gold,
+    justifyContent: 'space-between',
   },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 2,
   },
   meta: {
     ...typography.hud,
@@ -424,19 +455,20 @@ const styles = StyleSheet.create({
   answers: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 6,
     justifyContent: 'space-between',
   },
   logBox: {
-    flex: 1,
+    maxHeight: 44,
+    minHeight: 34,
     backgroundColor: colors.navy,
     borderRadius: radius.md,
-    padding: spacing.sm,
-    minHeight: 56,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
   },
-  logTitle: { ...typography.hud, color: colors.gold, fontSize: 10 },
+  logTitle: { ...typography.hud, color: colors.gold, fontSize: 9 },
   logScroll: { flexGrow: 0 },
-  logLine: { ...typography.caption, color: 'rgba(247,244,236,0.85)' },
+  logLine: { ...typography.caption, color: 'rgba(247,244,236,0.85)', fontSize: 10 },
   pauseOverlay: {
     flex: 1,
     backgroundColor: colors.overlay,
@@ -450,13 +482,32 @@ const styles = StyleSheet.create({
     backgroundColor: colors.panelDark,
     borderRadius: radius.xl,
     padding: spacing.xl,
-    gap: spacing.md,
+    alignItems: 'center',
+    gap: spacing.sm,
     borderWidth: 2,
     borderColor: colors.gold,
+  },
+  pauseIcon: {
+    fontSize: 32,
+    marginBottom: 4,
   },
   pauseTitle: {
     ...typography.title,
     textAlign: 'center',
     color: colors.gold,
+    fontSize: 20,
+  },
+  pauseMessage: {
+    ...typography.body,
+    textAlign: 'center',
+    color: colors.textInverse,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: spacing.xs,
+  },
+  pauseActions: {
+    width: '100%',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
   },
 });

@@ -57,8 +57,13 @@ export function CharacterSelectionScreen({ navigation }: Props) {
               key={c.id}
               onPress={() => {
                 void AudioManager.play('click');
-                if (pickingFor === 'p1') setP1(c.id);
-                else setP2(c.id);
+                if (pickingFor === 'p1') {
+                  setP1(c.id);
+                  useGameStore.getState().setPlayer1Color(c.color);
+                } else {
+                  setP2(c.id);
+                  useGameStore.getState().setPlayer2Color(c.color);
+                }
               }}
               style={[
                 styles.card,

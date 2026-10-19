@@ -14,20 +14,21 @@ export function AboutScreen({ navigation }: Props) {
     <LinearGradient colors={['#E8F4FC', '#FFF7ED']} style={styles.flex}>
       <SafeAreaView style={styles.flex}>
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.title}>About</Text>
+          <Text style={styles.title}>Tentang Game</Text>
           <View style={styles.card}>
-            <Text style={styles.logo}>⚔️ Math Duel</Text>
-            <Text style={styles.tagline}>Think Fast. Fight Smart!</Text>
+            <Text style={styles.logo}>⚔️ Fraction Battle</Text>
+            <Text style={styles.tagline}>Kuasai Pecahan, Menangkan Pertarungan!</Text>
             <Text style={styles.body}>
-              Math Duel adalah game edukasi matematika untuk siswa kelas 5 SD.
-              Jawab soal dengan benar untuk menyerang lawan dalam duel turn-based offline.
+              Fraction Battle adalah game edukasi pecahan interaktif untuk siswa kelas 5 SD.
+              Dilengkapi materi pembelajaran lengkap, video edukasi YouTube, dan arena duel hitung
+              menurun yang seru!
             </Text>
             <Text style={styles.body}>
-              Semua konten, karakter, dan desain bersifat original. Tidak ada aset dari
-              franchise fighting game berhak cipta.
+              Jawab soal pecahan dengan cepat dan tepat untuk melancarkan serangan duel turn-based
+              terhadap lawan atau komputer.
             </Text>
             <Text style={styles.meta}>Versi 1.0.0</Text>
-            <Text style={styles.meta}>100% Offline · React Native + Expo</Text>
+            <Text style={styles.meta}>Materi Lengkap · Mode Offline & Online · React Native + Expo</Text>
           </View>
           <AppButton title="Kembali" variant="ghost" onPress={() => navigation.goBack()} />
         </ScrollView>

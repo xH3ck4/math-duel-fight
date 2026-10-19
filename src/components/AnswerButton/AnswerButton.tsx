@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors, radius, shadows, spacing, typography } from '../../theme';
 import { AudioManager } from '../../services/AudioManager';
 
+import { FractionDisplay } from '../Fraction/FractionView';
+
 interface Props {
   label: string;
   onPress: () => void;
@@ -27,22 +29,27 @@ export function AnswerButton({ label, onPress, disabled, selected }: Props) {
         pressed && styles.pressed,
       ]}
     >
-      <Text style={styles.text}>{label}</Text>
+      <FractionDisplay
+        data={label}
+        fontSize={20}
+        color={selected ? colors.textInverse : colors.gold}
+      />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   btn: {
-    minHeight: 56,
-    flexBasis: '47%',
+    minHeight: 46,
+    flexBasis: '48%',
     backgroundColor: colors.navy,
     borderRadius: radius.md,
     borderWidth: 2,
     borderColor: colors.gold,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
     ...shadows.soft,
   },
   text: {

@@ -13,8 +13,28 @@ import Svg, {
 export type FighterId = 'kai' | 'raka' | 'naya' | 'zara';
 export type FighterPose = 'idle' | 'attack' | 'hit' | 'win';
 
+export interface CharacterColorOption {
+  id: string;
+  label: string;
+  hex: string;
+  dark: string;
+  accent: string;
+}
+
+export const CHARACTER_COLORS: CharacterColorOption[] = [
+  { id: 'blue', label: 'Biru Samudra', hex: '#2B6CB0', dark: '#1E4D8C', accent: '#8EC5FF' },
+  { id: 'red', label: 'Merah Bara', hex: '#E6392B', dark: '#A81F16', accent: '#FF8A7A' },
+  { id: 'orange', label: 'Oranye Api', hex: '#E08900', dark: '#A86300', accent: '#FFC857' },
+  { id: 'emerald', label: 'Hijau Zamrud', hex: '#2B9B8A', dark: '#1A6B5E', accent: '#6FD9C7' },
+  { id: 'purple', label: 'Ungu Petir', hex: '#7C3AED', dark: '#5B21B6', accent: '#C4B5FD' },
+  { id: 'pink', label: 'Pink Flamingo', hex: '#DB2777', dark: '#9D174D', accent: '#F472B6' },
+  { id: 'gold', label: 'Kuning Emas', hex: '#D97706', dark: '#92400E', accent: '#FDE68A' },
+  { id: 'cyan', label: 'Cyan Es', hex: '#0284C7', dark: '#0369A1', accent: '#7DD3FC' },
+];
+
 interface Props {
   characterId: string;
+  customColor?: string;
   size?: number;
   facing?: 'left' | 'right';
   pose?: FighterPose;
@@ -65,12 +85,36 @@ function resolveId(id: string): FighterId {
  */
 export function FighterSprite({
   characterId,
+  customColor,
   size = 120,
   facing = 'right',
   pose = 'idle',
 }: Props) {
   const id = resolveId(characterId);
-  const p = PALETTE[id];
+  const p = useMemo(() => {
+    if (customColor) {
+      const match = CHARACTER_COLORS.find(
+        (c) => c.hex.toLowerCase() === customColor.toLowerCase() || c.id === customColor
+      );
+      if (match) {
+        return {
+          body: match.hex,
+          bodyDark: match.dark,
+          tip: '#F5C518',
+          eraser: '#F7C6C0',
+          accent: match.accent,
+        };
+      }
+      return {
+        body: customColor,
+        bodyDark: '#0B1C33',
+        tip: '#F5C518',
+        eraser: '#F7C6C0',
+        accent: customColor,
+      };
+    }
+    return PALETTE[id];
+  }, [id, customColor]);
   const flip = facing === 'left' ? -1 : 1;
 
   const poseTransform = useMemo(() => {

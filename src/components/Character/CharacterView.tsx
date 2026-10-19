@@ -12,6 +12,8 @@ import { FighterSprite, type FighterPose } from './FighterSprite';
 
 interface Props {
   characterId: string;
+  customColor?: string;
+  customName?: string;
   facing?: 'left' | 'right';
   isAttacking?: boolean;
   isHit?: boolean;
@@ -23,6 +25,8 @@ interface Props {
 
 export function CharacterView({
   characterId,
+  customColor,
+  customName,
   facing = 'right',
   isAttacking,
   isHit,
@@ -83,6 +87,7 @@ export function CharacterView({
       <Animated.View style={[styles.spriteWrap, animStyle]}>
         <FighterSprite
           characterId={characterId}
+          customColor={customColor}
           size={size}
           facing={facing}
           pose={pose}
@@ -94,8 +99,8 @@ export function CharacterView({
         ) : null}
       </Animated.View>
       {showName ? (
-        <View style={[styles.namePlate, { borderColor: character.color }]}>
-          <Text style={styles.name}>{character.name}</Text>
+        <View style={[styles.namePlate, { borderColor: customColor || character.color }]}>
+          <Text style={styles.name}>{customName || character.name}</Text>
         </View>
       ) : null}
     </View>

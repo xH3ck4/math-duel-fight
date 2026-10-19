@@ -306,13 +306,22 @@ const GENERATORS: Record<QuestionCategory, (d: Difficulty) => Question> = {
   fraction: generateFractionQuestion,
   decimal: generateDecimalQuestion,
   story: generateStoryQuestion,
+  fraction_like: generateFractionQuestion,
+  fraction_unlike: generateFractionQuestion,
+  fraction_mixed: generateFractionQuestion,
+  fraction_story: generateStoryQuestion,
+  fraction_mult_div: generateFractionQuestion,
+  fraction_complex: generateMixedQuestion,
+  fraction_story_advanced: generateStoryQuestion,
+  fraction_boss: generateFractionQuestion,
 };
 
 export function generateQuestionByCategory(
   category: QuestionCategory,
   difficulty: Difficulty,
 ): Question {
-  return GENERATORS[category](difficulty);
+  const gen = GENERATORS[category] ?? generateFractionQuestion;
+  return gen(difficulty);
 }
 
 export function validateQuestion(q: Question): boolean {

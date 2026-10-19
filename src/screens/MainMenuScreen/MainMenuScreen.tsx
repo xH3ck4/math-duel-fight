@@ -80,7 +80,7 @@ export function MainMenuScreen({ navigation }: Props) {
   const logoWidth = Math.min(width - 48, 340);
 
   const confirmExit = () => {
-    Alert.alert('Keluar dari Math Duel?', 'Yakin ingin menutup game?', [
+    Alert.alert('Keluar dari Fraction Battle?', 'Yakin ingin menutup game?', [
       { text: 'Batal', style: 'cancel' },
       { text: 'Keluar', style: 'destructive', onPress: exitGame },
     ]);
@@ -131,11 +131,11 @@ export function MainMenuScreen({ navigation }: Props) {
               source={LOGO}
               style={{ width: logoWidth, height: logoWidth * 0.96 }}
               resizeMode="contain"
-              accessibilityLabel="Math Duel logo"
+              accessibilityLabel="Fraction Battle logo"
             />
           </Animated.View>
 
-          <Text style={styles.tagline}>Think Fast. Fight Smart!</Text>
+          <Text style={styles.tagline}>Kuasai Pecahan, Menangkan Pertarungan!</Text>
 
           <Animated.View style={[styles.fighters, floatStyle]}>
             <CharacterView characterId="raka" facing="right" size={96} showName={false} />
@@ -146,7 +146,7 @@ export function MainMenuScreen({ navigation }: Props) {
           </Animated.View>
 
           <View style={styles.progressCard}>
-            <Text style={styles.progressEyebrow}>PILOT STATUS</Text>
+            <Text style={styles.progressEyebrow}>STATUS PETARUNG</Text>
             <Text style={styles.progressTitle}>{profile.playerName}</Text>
             <View style={styles.statRow}>
               <View style={styles.statBox}>
@@ -165,19 +165,24 @@ export function MainMenuScreen({ navigation }: Props) {
           </View>
 
           <View style={styles.menu}>
-            <AppButton title="PLAY" onPress={() => navigation.navigate('ModeSelection')} />
+            <AppButton title="MAIN BATTLE ⚔️" onPress={() => navigation.navigate('ModeSelection')} />
             <AppButton
-              title="HOW TO PLAY"
+              title="📖 MATERI PECAHAN & VIDEO"
               variant="secondary"
+              onPress={() => navigation.navigate('LevelSelection')}
+            />
+            <AppButton
+              title="CARA BERMAIN"
+              variant="ghost"
               onPress={() => navigation.navigate('HowToPlay')}
             />
             <View style={styles.menuRow}>
               <View style={styles.half}>
-                <AppButton title="PROFILE" variant="success" onPress={() => navigation.navigate('Profile')} />
+                <AppButton title="PROFIL" variant="success" onPress={() => navigation.navigate('Profile')} />
               </View>
               <View style={styles.half}>
                 <AppButton
-                  title="TROPHY"
+                  title="PRESTASI"
                   variant="warning"
                   onPress={() => navigation.navigate('Achievement')}
                 />
@@ -185,13 +190,13 @@ export function MainMenuScreen({ navigation }: Props) {
             </View>
             <View style={styles.menuRow}>
               <View style={styles.half}>
-                <AppButton title="SETTINGS" variant="ghost" onPress={() => navigation.navigate('Settings')} />
+                <AppButton title="PENGATURAN" variant="ghost" onPress={() => navigation.navigate('Settings')} />
               </View>
               <View style={styles.half}>
-                <AppButton title="ABOUT" variant="ghost" onPress={() => navigation.navigate('About')} />
+                <AppButton title="TENTANG" variant="ghost" onPress={() => navigation.navigate('About')} />
               </View>
             </View>
-            <AppButton title="EXIT GAME" variant="danger" onPress={confirmExit} />
+            <AppButton title="KELUAR GAME" variant="danger" onPress={confirmExit} />
           </View>
         </ScrollView>
       </SafeAreaView>

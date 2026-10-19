@@ -28,12 +28,14 @@ function createBattlePlayer(
   name: string,
   characterId: string,
   isNpc: boolean,
+  customColor?: string,
 ): BattlePlayer {
   const character = getCharacterById(characterId);
   return {
     id,
     name,
     characterId,
+    customColor: customColor || character.color,
     isNpc,
     hp: character.stats.hp,
     maxHp: character.stats.hp,
@@ -58,6 +60,8 @@ interface GameState {
   player2CharacterId: string;
   player1Name: string;
   player2Name: string;
+  player1Color: string;
+  player2Color: string;
 
   player1: BattlePlayer | null;
   player2: BattlePlayer | null;
@@ -81,6 +85,8 @@ interface GameState {
   setLevelId: (id: number) => void;
   setPlayer1Character: (id: string) => void;
   setPlayer2Character: (id: string) => void;
+  setPlayer1Color: (color: string) => void;
+  setPlayer2Color: (color: string) => void;
   setPlayerNames: (p1: string, p2: string) => void;
   startBattle: () => void;
   tickTimer: () => void;
@@ -101,6 +107,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   player2CharacterId: 'raka',
   player1Name: 'Player 1',
   player2Name: 'Player 2',
+  player1Color: '#2B6CB0',
+  player2Color: '#E6392B',
 
   player1: null,
   player2: null,
@@ -108,7 +116,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   questions: [],
   questionIndex: 0,
   currentQuestion: null,
-  timeRemaining: 10,
+  timeRemaining: 60,
   questionStartedAt: 0,
   gamePhase: 'menu',
   feedback: null,
@@ -129,6 +137,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   setLevelId: (levelId) => set({ levelId }),
   setPlayer1Character: (player1CharacterId) => set({ player1CharacterId }),
   setPlayer2Character: (player2CharacterId) => set({ player2CharacterId }),
+  setPlayer1Color: (player1Color) => set({ player1Color }),
+  setPlayer2Color: (player2Color) => set({ player2Color }),
   setPlayerNames: (player1Name, player2Name) => set({ player1Name, player2Name }),
 
   getActivePlayer: () => {
@@ -144,12 +154,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   startBattle: () => {
     const state = get();
     const questions = QuestionService.buildBattleQuestions(state.levelId);
-    const p1 = createBattlePlayer('player1', state.player1Name, state.player1CharacterId, false);
+    const p1 = createBattlePlayer('player1', state.player1Name, state.player1CharacterId, false, state.player1Color);
     const p2 = createBattlePlayer(
       'player2',
       state.mode === 'pvc' ? 'Komputer' : state.player2Name,
       state.player2CharacterId,
       state.mode === 'pvc',
+      state.player2Color,
     );
     const first = questions[0];
     set({

@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "Math Duel",
-    "slug": "math-duel-fight",
+    "name": "Fraction Battle",
+    "slug": "fraction-battle",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mathduel.fight"
+      "bundleIdentifier": "com.fractionbattle.fight"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F2A52"
       },
-      "package": "com.mathduel.fight",
+      "package": "com.fractionbattle.fight",
       "versionCode": 1,
       "permissions": [
         "android.permission.RECORD_AUDIO",

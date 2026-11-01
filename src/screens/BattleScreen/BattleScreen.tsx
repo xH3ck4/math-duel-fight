@@ -255,7 +255,7 @@ export function BattleScreen({ navigation }: Props) {
           >
             <View style={styles.metaRow}>
               <Text style={styles.meta}>
-                Q {questionIndex + 1}/{questions.length}
+                SOAL {questionIndex + 1} DARI {questions.length}
               </Text>
               <Timer seconds={timeRemaining} warning={timeRemaining <= 3} />
               {mode === 'pvc' ? (

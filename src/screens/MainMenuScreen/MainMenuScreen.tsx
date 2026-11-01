@@ -24,6 +24,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../types/game';
 import { CharacterView } from '../../components/Character/CharacterView';
 import { AppButton } from '../../components/Button/AppButton';
+import { LEVEL_IDS } from '../../data/levels';
 import { colors, radius, shadows, spacing, typography } from '../../theme';
 import { usePlayerStore } from '../../store/playerStore';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -129,7 +130,7 @@ export function MainMenuScreen({ navigation }: Props) {
           <Animated.View style={[styles.logoWrap, pulseStyle]}>
             <Image
               source={LOGO}
-              style={{ width: logoWidth, height: logoWidth * 0.96 }}
+              style={{ width: logoWidth, height: logoWidth }}
               resizeMode="contain"
               accessibilityLabel="Fraction Battle logo"
             />
@@ -158,8 +159,11 @@ export function MainMenuScreen({ navigation }: Props) {
                 <Text style={styles.statLabel}>WINS</Text>
               </View>
               <View style={styles.statBox}>
-                <Text style={styles.statValue}>{profile.unlockedLevels.length}/8</Text>
-                <Text style={styles.statLabel}>LEVEL</Text>
+                <Text style={styles.statValue}>
+                  {LEVEL_IDS.filter((id) => (profile.levelStars[String(id)] ?? 0) > 0).length} dari{' '}
+                  {LEVEL_IDS.length}
+                </Text>
+                <Text style={styles.statLabel}>LEVEL SELESAI</Text>
               </View>
             </View>
           </View>

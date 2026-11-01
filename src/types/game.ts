@@ -1,22 +1,10 @@
 export type Difficulty = 'easy' | 'normal' | 'hard';
 
 export type QuestionCategory =
-  | 'addition'
-  | 'subtraction'
-  | 'multiplication'
-  | 'division'
-  | 'mixed'
-  | 'fraction'
-  | 'decimal'
-  | 'story'
   | 'fraction_like'
   | 'fraction_unlike'
   | 'fraction_mixed'
-  | 'fraction_story'
-  | 'fraction_mult_div'
-  | 'fraction_complex'
-  | 'fraction_story_advanced'
-  | 'fraction_boss';
+  | 'fraction_story';
 
 export type GameMode = 'pvp' | 'pvc';
 

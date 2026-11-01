@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { ACHIEVEMENTS } from '../data/achievements';
+import { LEVEL_IDS } from '../data/levels';
 import type { BattleResult, PlayerProfile } from '../types/game';
 import { DEFAULT_PROFILE, StorageService } from '../services/StorageService';
 import { accuracyPercent } from '../utils/gameUtils';
@@ -43,7 +44,8 @@ function checkAchievements(profile: PlayerProfile): string[] {
         unlocked = profile.totalWins >= c.count;
         break;
       case 'levels_cleared':
-        unlocked = profile.unlockedLevels.length >= c.count;
+        unlocked =
+          LEVEL_IDS.filter((id) => (profile.levelStars[String(id)] ?? 0) > 0).length >= c.count;
         break;
       default:
         break;
@@ -59,12 +61,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   hydrate: async () => {
     const loaded = await StorageService.loadProfile();
-    // Ensure all 8 levels are always unlocked
-    const allLevels = [1, 2, 3, 4, 5, 6, 7, 8];
     const profile: PlayerProfile = {
       ...loaded,
-      unlockedLevels: allLevels,
-      viewedMaterials: loaded.viewedMaterials || [],
+      unlockedLevels: [...LEVEL_IDS],
+      viewedMaterials: (loaded.viewedMaterials || []).filter((id) => LEVEL_IDS.includes(id)),
     };
     set({ profile, hydrated: true });
   },
@@ -132,7 +132,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     if (won) {
       const nextLevel = result.levelId + 1;
-      if (nextLevel <= 8 && !profile.unlockedLevels.includes(nextLevel)) {
+      if (LEVEL_IDS.includes(nextLevel) && !profile.unlockedLevels.includes(nextLevel)) {
         profile.unlockedLevels = [...profile.unlockedLevels, nextLevel].sort((a, b) => a - b);
       }
     }

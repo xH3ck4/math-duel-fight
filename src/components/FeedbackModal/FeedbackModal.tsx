@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import type { FeedbackState } from '../../types/game';
 import { colors, radius, spacing, typography } from '../../theme';
+import { FractionDisplay, FractionText } from '../Fraction/FractionView';
 
 interface Props {
   visible: boolean;
@@ -21,12 +22,21 @@ export function FeedbackModal({ visible, feedback }: Props) {
             {feedback.isTimeout ? "⏰ TIME'S UP!" : correct ? '✅ BENAR!' : '❌ SALAH!'}
           </Text>
           {!correct && (
-            <Text style={styles.line}>
-              Jawaban yang benar: <Text style={styles.bold}>{feedback.correctAnswer}</Text>
-            </Text>
+            <View style={styles.answerRow}>
+              <Text style={styles.line}>Jawaban yang benar:</Text>
+              <FractionDisplay
+                data={feedback.correctAnswer}
+                fontSize={22}
+                color={colors.primaryDark}
+              />
+            </View>
           )}
           <Text style={styles.line}>Penjelasan:</Text>
-          <Text style={styles.explain}>{feedback.explanation}</Text>
+          <FractionText
+            text={feedback.explanation}
+            style={styles.explain}
+            fractionColor={colors.primaryDark}
+          />
           <Text style={styles.damage}>
             {correct ? `💥 Damage: ${feedback.damage}` : `💔 Self-damage: ${feedback.damage}`}
           </Text>
@@ -74,9 +84,11 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text,
   },
-  bold: {
-    fontWeight: '900',
-    color: colors.primaryDark,
+  answerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   explain: {
     ...typography.bodyLarge,

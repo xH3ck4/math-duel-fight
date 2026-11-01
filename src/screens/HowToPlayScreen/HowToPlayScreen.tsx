@@ -11,9 +11,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HowToPlay'>;
 
 const STEPS = [
   { icon: '👤', title: 'Pilih & Kustom Karakter', desc: 'Gunakan namamu sendiri dan pilih warna pejuang pecahan favoritmu.' },
-  { icon: '📚', title: 'Pilih Level Pecahan', desc: 'Semua 8 level terbuka bebas tanpa terkunci untuk kamu jelajahi.' },
+  { icon: '📚', title: 'Pilih Level Pecahan', desc: 'Semua 4 level terbuka bebas tanpa terkunci untuk kamu jelajahi.' },
   { icon: '📖', title: 'Pelajari Materi & Video', desc: 'Wajib akses materi konsep dan tonton video penjelasan sebelum duel!' },
-  { icon: '📐', title: 'Format Hitung Menurun', desc: 'Soal pecahan disajikan bersusun menurun agar mudah dihitung.' },
+  { icon: '📐', title: 'Pecahan Bersusun', desc: 'Setiap pecahan ditulis bersusun: pembilang di atas garis, penyebut di bawah garis.' },
   { icon: '⏱️', title: 'Waktu Bertarung', desc: 'Tersedia 1 menit untuk soal standar dan 2 menit untuk soal cerita numerasi.' },
   { icon: '💥', title: 'Serang Lawan!', desc: 'Jawaban benar melancarkan serangan. Habiskan HP musuh untuk menang!' },
 ];
@@ -29,7 +29,9 @@ export function HowToPlayScreen({ navigation }: Props) {
           <Text style={styles.title}>How To Play</Text>
           <View style={styles.card}>
             <Text style={styles.icon}>{current.icon}</Text>
-            <Text style={styles.step}>Langkah {step + 1} / {STEPS.length}</Text>
+            <Text style={styles.step}>
+              Langkah {step + 1} dari {STEPS.length}
+            </Text>
             <Text style={styles.cardTitle}>{current.title}</Text>
             <Text style={styles.desc}>{current.desc}</Text>
           </View>

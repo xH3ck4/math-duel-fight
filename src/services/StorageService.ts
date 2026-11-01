@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from '../constants/gameConfig';
+import { LEVEL_IDS } from '../data/levels';
 import type { AppSettings, PlayerProfile } from '../types/game';
 
 export const DEFAULT_PROFILE: PlayerProfile = {
@@ -11,7 +12,7 @@ export const DEFAULT_PROFILE: PlayerProfile = {
   highestCombo: 0,
   totalCorrect: 0,
   totalWrong: 0,
-  unlockedLevels: [1, 2, 3, 4, 5, 6, 7, 8],
+  unlockedLevels: [...LEVEL_IDS],
   viewedMaterials: [],
   levelBestScores: {},
   levelStars: {},
@@ -49,9 +50,8 @@ async function safeSet(key: string, value: unknown): Promise<void> {
 export const StorageService = {
   async loadProfile(): Promise<PlayerProfile> {
     const profile = await safeGet(STORAGE_KEYS.PROFILE, DEFAULT_PROFILE);
-    if (!profile.unlockedLevels?.length) {
-      profile.unlockedLevels = [1];
-    }
+    const validLevels = (profile.unlockedLevels ?? []).filter((id) => LEVEL_IDS.includes(id));
+    profile.unlockedLevels = validLevels.length ? validLevels : [LEVEL_IDS[0]];
     return profile;
   },
 

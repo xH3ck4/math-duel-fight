@@ -14,11 +14,11 @@ export const GAME_CONFIG = {
     hard: 30,
   } as Record<Difficulty, number>,
 
-  TIMER: {
-    easy: 60,
-    normal: 60,
-    hard: 120,
-  } as Record<Difficulty, number>,
+  /** Seconds per question; story problems need reading time. */
+  TIME_LIMIT: {
+    standard: 60,
+    story: 120,
+  },
 
   SCORE: {
     easy: 100,

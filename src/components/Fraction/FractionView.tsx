@@ -1,6 +1,14 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useMemo } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type TextStyle,
+  type ViewStyle,
+} from 'react-native';
 import { colors, radius, typography } from '../../theme';
+import { fractionToSpeech } from '../../utils/fraction';
 import {
   parseFractionToken,
   parseVerticalProblem,
@@ -74,6 +82,88 @@ export function FractionDisplay({
   );
 }
 
+type TextSegment = { kind: 'text'; value: string } | { kind: 'fraction'; value: ParsedFraction };
+
+const FRACTION_TOKEN = /(\d+)\s+(\d+)\/(\d+)|(\d+)\/(\d+)/g;
+
+function tokenizeLine(line: string): TextSegment[] {
+  const segments: TextSegment[] = [];
+  let last = 0;
+  for (const match of line.matchAll(FRACTION_TOKEN)) {
+    const start = match.index ?? 0;
+    if (start > last) segments.push({ kind: 'text', value: line.slice(last, start) });
+    segments.push({
+      kind: 'fraction',
+      value: match[1]
+        ? { whole: match[1], num: match[2], den: match[3] }
+        : { num: match[4], den: match[5] },
+    });
+    last = start + match[0].length;
+  }
+  if (last < line.length) segments.push({ kind: 'text', value: line.slice(last) });
+  return segments;
+}
+
+interface FractionTextProps {
+  text: string;
+  /** Text styling (font size, color, weight, line height). */
+  style?: StyleProp<TextStyle>;
+  /** Layout styling for the wrapping block (flex, margins). */
+  containerStyle?: StyleProp<ViewStyle>;
+  align?: 'left' | 'center';
+  fractionColor?: string;
+}
+
+/**
+ * Running text where every "a/b" or "w a/b" is drawn as a stacked fraction
+ * (pembilang di atas garis, penyebut di bawah) instead of a slash.
+ */
+export function FractionText({
+  text,
+  style,
+  containerStyle,
+  align = 'left',
+  fractionColor,
+}: FractionTextProps) {
+  const lines = useMemo(() => text.split('\n').map(tokenizeLine), [text]);
+  const flat = StyleSheet.flatten(style) ?? {};
+  const fontSize = flat.fontSize ?? 14;
+  const color = (flat.color as string | undefined) ?? colors.textInverse;
+
+  return (
+    <View
+      style={[styles.textBlock, containerStyle]}
+      accessible
+      accessibilityLabel={fractionToSpeech(text)}
+    >
+      {lines.map((segments, lineIndex) => (
+        <View key={lineIndex} style={[styles.textLine, align === 'center' && styles.textCentered]}>
+          {segments.map((segment, segIndex) => {
+            if (segment.kind === 'fraction') {
+              return (
+                <View key={segIndex} style={styles.inlineFraction}>
+                  <FractionDisplay
+                    data={segment.value}
+                    fontSize={fontSize}
+                    color={fractionColor ?? color}
+                  />
+                </View>
+              );
+            }
+            // One Text per word so the row can wrap between words.
+            const words = segment.value.match(/\S+\s*|\s+/g) ?? [];
+            return words.map((word, wordIndex) => (
+              <Text key={`${segIndex}-${wordIndex}`} style={style}>
+                {word}
+              </Text>
+            ));
+          })}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 interface VerticalEquationProps {
   questionText: string;
 }
@@ -92,7 +182,7 @@ export function VerticalMathView({ questionText }: VerticalEquationProps) {
   if (!parsed || !parsed.operator) {
     return (
       <View style={styles.fallbackWrap}>
-        <Text style={styles.fallbackQuestion}>{questionText}</Text>
+        <FractionText text={questionText} style={styles.fallbackQuestion} align="center" />
       </View>
     );
   }
@@ -105,7 +195,7 @@ export function VerticalMathView({ questionText }: VerticalEquationProps) {
           <View style={styles.storyHeader}>
             <Text style={styles.storyBadge}>📖 SOAL CERITA</Text>
           </View>
-          <Text style={styles.storyText}>{parsed.storyText}</Text>
+          <FractionText text={parsed.storyText} style={styles.storyText} fractionColor={colors.gold} />
         </View>
       ) : null}
 
@@ -282,5 +372,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     includeFontPadding: false,
+  },
+  textBlock: {
+    gap: 4,
+  },
+  textLine: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    rowGap: 2,
+  },
+  textCentered: {
+    justifyContent: 'center',
+  },
+  inlineFraction: {
+    marginHorizontal: 2,
   },
 });

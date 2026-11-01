@@ -35,53 +35,15 @@ export const LEVELS: LevelInfo[] = [
     id: 4,
     name: 'Numerasi & Cerita',
     icon: '📜',
-    description: 'Soal cerita kehidupan nyata (Storytelling). Waktu berpikir 2 menit!',
+    description: 'Soal cerita kehidupan sehari-hari. Waktu berpikir 2 menit!',
     category: 'fraction_story',
     difficulty: 'hard',
     questionCount: 10,
     unlockRequirement: null,
   },
-  {
-    id: 5,
-    name: 'Perkalian & Pembagian',
-    icon: '✖️',
-    description: 'Kuasai perkalian dan pembagian pecahan biasa serta campuran.',
-    category: 'fraction_mult_div',
-    difficulty: 'normal',
-    questionCount: 10,
-    unlockRequirement: null,
-  },
-  {
-    id: 6,
-    name: 'Operasi Campuran',
-    icon: '⚡',
-    description: 'Hitung kombinasi tambah, kurang, kali, dan bagi pecahan.',
-    category: 'fraction_complex',
-    difficulty: 'hard',
-    questionCount: 10,
-    unlockRequirement: null,
-  },
-  {
-    id: 7,
-    name: 'Tantangan Numerasi Lanjut',
-    icon: '🏆',
-    description: 'Cerita multi-langkah: resep makanan, belanja diskon, dan luas lahan (2 menit).',
-    category: 'fraction_story_advanced',
-    difficulty: 'hard',
-    questionCount: 10,
-    unlockRequirement: null,
-  },
-  {
-    id: 8,
-    name: 'Duel Master Pecahan',
-    icon: '👑',
-    description: 'Pertarungan puncak menghadapi segala kombinasi soal pecahan!',
-    category: 'fraction_boss',
-    difficulty: 'hard',
-    questionCount: 10,
-    unlockRequirement: null,
-  },
 ];
+
+export const LEVEL_IDS = LEVELS.map((l) => l.id);
 
 export function getLevelById(id: number): LevelInfo {
   return LEVELS.find((l) => l.id === id) ?? LEVELS[0];

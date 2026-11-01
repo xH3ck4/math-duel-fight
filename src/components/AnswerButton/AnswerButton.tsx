@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors, radius, shadows, spacing, typography } from '../../theme';
 import { AudioManager } from '../../services/AudioManager';
-
+import { fractionToSpeech } from '../../utils/fraction';
 import { FractionDisplay } from '../Fraction/FractionView';
 
 interface Props {
@@ -16,7 +16,7 @@ export function AnswerButton({ label, onPress, disabled, selected }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Jawaban ${label}`}
+      accessibilityLabel={`Jawaban ${fractionToSpeech(label)}`}
       disabled={disabled}
       onPress={() => {
         void AudioManager.play('click');

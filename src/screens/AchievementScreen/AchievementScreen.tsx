@@ -20,7 +20,7 @@ export function AchievementScreen({ navigation }: Props) {
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.title}>Achievement</Text>
           <Text style={styles.sub}>
-            {unlocked.length} / {ACHIEVEMENTS.length} terbuka
+            {unlocked.length} dari {ACHIEVEMENTS.length} terbuka
           </Text>
 
           {ACHIEVEMENTS.map((ach) => {

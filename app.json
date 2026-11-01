@@ -13,7 +13,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F2A52"
+        "backgroundColor": "#0B122C"
       },
       "package": "com.fractionbattle.fight",
       "versionCode": 1,
@@ -35,7 +35,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0F2A52",
+          "backgroundColor": "#0B122C",
           "image": "./assets/logo-game.png",
           "imageWidth": 240,
           "resizeMode": "contain"

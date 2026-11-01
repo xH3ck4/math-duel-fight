@@ -53,7 +53,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   {
     id: 'explorer',
     title: 'Level Explorer',
-    description: 'Membuka 4 level.',
+    description: 'Mendapat bintang di semua 4 level.',
     icon: '🗺️',
     condition: { type: 'levels_cleared', count: 4 },
   },

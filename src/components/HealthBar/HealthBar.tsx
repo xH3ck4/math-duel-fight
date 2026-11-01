@@ -49,7 +49,7 @@ export function HealthBar({ current, max, label, showText = true, light = true }
                 tone === 'low' && styles.critical,
               ]}
             >
-              HP {Math.ceil(current)}/{max}
+              HP {Math.ceil(current)}
             </Text>
           ) : null}
         </View>

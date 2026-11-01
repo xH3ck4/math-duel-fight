@@ -17,7 +17,11 @@ import type { RootStackParamList } from '../../types/game';
 import { getMaterialByLevel, FRACTION_MATERIALS } from '../../data/materials';
 import { getLevelById, LEVELS } from '../../data/levels';
 import { AppButton } from '../../components/Button/AppButton';
-import { FractionDisplay, VerticalMathView } from '../../components/Fraction/FractionView';
+import {
+  FractionDisplay,
+  FractionText,
+  VerticalMathView,
+} from '../../components/Fraction/FractionView';
 import { usePlayerStore } from '../../store/playerStore';
 import { useGameStore } from '../../store/gameStore';
 import { AudioManager } from '../../services/AudioManager';
@@ -208,7 +212,7 @@ export function MaterialScreen({ route, navigation }: Props) {
             <View style={styles.cardBadge}>
               <Text style={styles.cardBadgeText}>💡 KONSEP DASAR</Text>
             </View>
-            <Text style={styles.bodyText}>{material.conceptSummary}</Text>
+            <FractionText text={material.conceptSummary} style={styles.bodyText} fractionColor={colors.gold} />
           </View>
 
           {/* Aturan Emas */}
@@ -219,7 +223,12 @@ export function MaterialScreen({ route, navigation }: Props) {
             {material.rules.map((rule, idx) => (
               <View key={idx} style={styles.bulletRow}>
                 <Text style={styles.bulletDot}>•</Text>
-                <Text style={styles.bulletText}>{rule}</Text>
+                <FractionText
+                  text={rule}
+                  style={styles.bulletText}
+                  containerStyle={styles.bulletBody}
+                  fractionColor={colors.gold}
+                />
               </View>
             ))}
           </View>
@@ -229,7 +238,11 @@ export function MaterialScreen({ route, navigation }: Props) {
             <View style={styles.cardBadge}>
               <Text style={styles.cardBadgeText}>📐 CARA PENGERJAAN PECAHAN</Text>
             </View>
-            <Text style={styles.bodyText}>{material.verticalMethodExplanation}</Text>
+            <FractionText
+              text={material.verticalMethodExplanation}
+              style={styles.bodyText}
+              fractionColor={colors.gold}
+            />
           </View>
 
           {/* Contoh Soal & Pembahasan Bersusun */}
@@ -248,9 +261,12 @@ export function MaterialScreen({ route, navigation }: Props) {
                 <View style={styles.stepBox}>
                   <Text style={styles.stepHeader}>Langkah Pengerjaan:</Text>
                   {ex.steps.map((st, sIdx) => (
-                    <Text key={sIdx} style={styles.stepText}>
-                      {sIdx + 1}. {st}
-                    </Text>
+                    <FractionText
+                      key={sIdx}
+                      text={`${sIdx + 1}. ${st}`}
+                      style={styles.stepText}
+                      fractionColor={colors.gold}
+                    />
                   ))}
                 </View>
                 <View style={styles.answerBanner}>
@@ -264,7 +280,7 @@ export function MaterialScreen({ route, navigation }: Props) {
           {/* Tips Duel Petarung */}
           <View style={styles.tipsCard}>
             <Text style={styles.tipsBadge}>⚔️ TIPS CEPAT DUEL</Text>
-            <Text style={styles.tipsText}>{material.battleTips}</Text>
+            <FractionText text={material.battleTips} style={styles.tipsText} fractionColor={colors.gold} />
           </View>
 
           {/* Action Buttons */}
@@ -550,9 +566,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '900',
   },
+  bulletBody: {
+    flex: 1,
+  },
   bulletText: {
     ...typography.body,
-    flex: 1,
     color: colors.textInverse,
     lineHeight: 20,
     fontSize: 14,

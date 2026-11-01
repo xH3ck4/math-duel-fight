@@ -1,8 +1,42 @@
 import type { Difficulty, Question, QuestionCategory } from '../types/game';
 import { GAME_CONFIG } from '../constants/gameConfig';
+import {
+  addFrac,
+  evaluateEquation,
+  frac,
+  fracEquals,
+  formatFrac,
+  gcd,
+  lcm,
+  parseEquation,
+  parseFrac,
+  subFrac,
+  type Frac,
+  type FracEquation,
+} from './fraction';
+
+type AddSub = '+' | '-';
+
+interface BuiltProblem {
+  leftText: string;
+  rightText: string;
+  op: AddSub;
+  explanation: string;
+}
+
+const LEVEL_OF: Record<QuestionCategory, number> = {
+  fraction_like: 1,
+  fraction_unlike: 2,
+  fraction_mixed: 3,
+  fraction_story: 4,
+};
 
 function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function pick<T>(items: readonly T[]): T {
+  return items[randInt(0, items.length - 1)];
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -14,319 +48,367 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
-function uniqueOptions(correct: string, distractors: string[]): string[] {
-  const set = new Set<string>([correct]);
-  for (const d of distractors) {
-    if (d !== correct && !set.has(d) && d.length > 0) {
-      set.add(d);
-    }
-    if (set.size >= 4) break;
+/** "2/4" -> {n: 2, d: 4}, "1 1/2" -> {n: 3, d: 2}; unlike parseFrac it does not simplify. */
+function writtenFrac(text: string): Frac | null {
+  const t = text.trim();
+  const mixed = t.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+  if (mixed) {
+    const d = Number(mixed[3]);
+    return d ? { n: Number(mixed[1]) * d + Number(mixed[2]), d } : null;
   }
-  let guard = 0;
-  while (set.size < 4 && guard < 50) {
-    const n = Number(correct);
-    if (!Number.isNaN(n)) {
-      set.add(String(n + randInt(1, 20) * (Math.random() > 0.5 ? 1 : -1)));
-    } else {
-      set.add(`${correct}_${guard}`);
-    }
-    guard += 1;
+  const simple = t.match(/^(\d+)\/(\d+)$/);
+  if (simple) {
+    const d = Number(simple[2]);
+    return d ? { n: Number(simple[1]), d } : null;
   }
-  return shuffle([...set]).slice(0, 4);
+  return /^\d+$/.test(t) ? { n: Number(t), d: 1 } : null;
 }
 
-function meta(difficulty: Difficulty) {
+function randomOp(): AddSub {
+  return Math.random() < 0.5 ? '+' : '-';
+}
+
+/** Random numerator in [1, d-1] that is coprime with d, so the fraction is already simplest. */
+function coprimeNumerator(d: number, min = 1, max = d - 1): number {
+  const choices: number[] = [];
+  for (let n = min; n <= max; n += 1) {
+    if (gcd(n, d) === 1) choices.push(n);
+  }
+  return choices.length ? pick(choices) : 1;
+}
+
+function resultText(n: number, d: number): string {
+  const raw = `${n}/${d}`;
+  const simplest = formatFrac(frac(n, d));
+  return raw === simplest ? raw : `${raw} = ${simplest}`;
+}
+
+function simplifyNote(n: number, d: number): string {
+  const raw = `${n}/${d}`;
+  const simplest = formatFrac(frac(n, d));
+  return raw === simplest ? '' : ` Bentuk paling sederhana: ${raw} = ${simplest}.`;
+}
+
+function verb(op: AddSub): string {
+  return op === '+' ? 'jumlahkan' : 'kurangkan';
+}
+
+function buildLike(difficulty: Difficulty, forcedOp?: AddSub): BuiltProblem {
+  const dens = {
+    easy: [3, 4, 5, 6, 7, 8, 9],
+    normal: [8, 9, 10, 11, 12],
+    hard: [12, 14, 15, 16, 18, 20],
+  }[difficulty];
+  const d = pick(dens);
+  const op = forcedOp ?? randomOp();
+  let a: number;
+  let b: number;
+  if (op === '+') {
+    a = randInt(1, d - 2);
+    b = randInt(1, d - 1 - a);
+  } else {
+    a = randInt(2, d - 1);
+    b = randInt(1, a - 1);
+  }
+  const r = op === '+' ? a + b : a - b;
+  return {
+    leftText: `${a}/${d}`,
+    rightText: `${b}/${d}`,
+    op,
+    explanation: `Penyebutnya sama (${d}), jadi penyebut tetap dan ${verb(op)} pembilangnya: ${a} ${op} ${b} = ${r}. Hasilnya ${r}/${d}.${simplifyNote(r, d)}`,
+  };
+}
+
+const UNLIKE_PAIRS: Record<Difficulty, Array<[number, number]>> = {
+  easy: [[2, 4], [2, 6], [3, 6], [4, 8], [2, 8], [5, 10]],
+  normal: [[2, 3], [3, 4], [2, 5], [4, 6], [3, 9], [4, 12], [6, 8]],
+  hard: [[3, 5], [4, 5], [5, 6], [3, 8], [4, 10], [6, 9], [8, 12]],
+};
+
+function conversion(n: number, d: number, common: number): string {
+  if (d === common) return '';
+  return `${n}/${d} = ${(n * common) / d}/${common}. `;
+}
+
+function buildUnlike(difficulty: Difficulty, forcedOp?: AddSub): BuiltProblem {
+  let [d1, d2] = pick(UNLIKE_PAIRS[difficulty]);
+  if (Math.random() < 0.5) [d1, d2] = [d2, d1];
+  const op = forcedOp ?? randomOp();
+  let a = coprimeNumerator(d1);
+  let b = coprimeNumerator(d2);
+
+  if (op === '-') {
+    let guard = 0;
+    while (a * d2 <= b * d1 && guard < 20) {
+      a = coprimeNumerator(d1);
+      b = coprimeNumerator(d2);
+      guard += 1;
+    }
+    if (a * d2 <= b * d1) {
+      [a, d1, b, d2] = [b, d2, a, d1];
+    }
+    if (a * d2 === b * d1) {
+      return buildUnlike(difficulty, '+');
+    }
+  }
+
+  const common = lcm(d1, d2);
+  const A = (a * common) / d1;
+  const B = (b * common) / d2;
+  const r = op === '+' ? A + B : A - B;
+  return {
+    leftText: `${a}/${d1}`,
+    rightText: `${b}/${d2}`,
+    op,
+    explanation:
+      `Penyebut berbeda, samakan dulu. KPK dari ${d1} dan ${d2} adalah ${common}. ` +
+      conversion(a, d1, common) +
+      conversion(b, d2, common) +
+      `Maka ${A}/${common} ${op} ${B}/${common} = ${r}/${common}.${simplifyNote(r, common)}`,
+  };
+}
+
+const MIXED_DENS: Record<Difficulty, Array<[number, number]>> = {
+  easy: [[3, 3], [4, 4], [5, 5], [6, 6], [8, 8]],
+  normal: [[2, 4], [2, 3], [3, 6], [2, 5], [4, 8]],
+  hard: [[3, 4], [2, 3], [4, 6], [2, 5], [3, 5]],
+};
+
+function buildMixed(difficulty: Difficulty, forcedOp?: AddSub): BuiltProblem {
+  let [d1, d2] = pick(MIXED_DENS[difficulty]);
+  if (Math.random() < 0.5) [d1, d2] = [d2, d1];
+  const op = forcedOp ?? randomOp();
+
+  let w1 = randInt(1, 4);
+  let w2 = randInt(1, 3);
+  let a = coprimeNumerator(d1);
+  let b = coprimeNumerator(d2);
+
+  if (op === '-') {
+    if (w1 <= w2) [w1, w2] = [w2 + 1, w1];
+    if (difficulty !== 'hard' && a * d2 <= b * d1) {
+      [a, d1, b, d2] = [b, d2, a, d1];
+      if (a * d2 === b * d1) w1 += 1;
+    }
+  }
+
+  const left = frac(w1 * d1 + a, d1);
+  const right = frac(w2 * d2 + b, d2);
+  if (op === '-' && left.n * right.d <= right.n * left.d) {
+    return buildMixed(difficulty, op);
+  }
+
+  const common = lcm(d1, d2);
+  const P1 = w1 * d1 + a;
+  const P2 = w2 * d2 + b;
+  const C1 = (P1 * common) / d1;
+  const C2 = (P2 * common) / d2;
+  const r = op === '+' ? C1 + C2 : C1 - C2;
+
+  const sameDen = d1 === d2;
+  return {
+    leftText: `${w1} ${a}/${d1}`,
+    rightText: `${w2} ${b}/${d2}`,
+    op,
+    explanation:
+      `Ubah ke pecahan biasa: ${w1} ${a}/${d1} = ${P1}/${d1} dan ${w2} ${b}/${d2} = ${P2}/${d2}. ` +
+      (sameDen
+        ? ''
+        : `Samakan penyebut ke ${common}: ${P1}/${d1} = ${C1}/${common} dan ${P2}/${d2} = ${C2}/${common}. `) +
+      `Maka ${C1}/${common} ${op} ${C2}/${common} = ${resultText(r, common)}.`,
+  };
+}
+
+interface StoryTemplate {
+  op: AddSub;
+  unit: string;
+  text: (a: string, b: string) => string;
+}
+
+const STORIES: StoryTemplate[] = [
+  {
+    op: '+',
+    unit: 'liter',
+    text: (a, b) =>
+      `Rina menyiram bunga dengan ${a} liter air pada pagi hari dan ${b} liter air pada sore hari. Berapa liter air yang dipakai Rina?`,
+  },
+  {
+    op: '+',
+    unit: 'kg',
+    text: (a, b) =>
+      `Ibu membeli ${a} kg gula di warung. Kemudian Ibu membeli lagi ${b} kg gula. Berapa kg gula Ibu sekarang?`,
+  },
+  {
+    op: '+',
+    unit: 'meter',
+    text: (a, b) =>
+      `Dodi memiliki pita merah sepanjang ${a} meter dan pita biru sepanjang ${b} meter. Berapa meter panjang pita Dodi seluruhnya?`,
+  },
+  {
+    op: '-',
+    unit: 'kg',
+    text: (a, b) =>
+      `Paman memiliki ${a} kg beras. Sebanyak ${b} kg dimasak untuk acara keluarga. Berapa kg sisa beras Paman?`,
+  },
+  {
+    op: '-',
+    unit: 'liter',
+    text: (a, b) =>
+      `Sebuah ember berisi ${a} liter air. Sebanyak ${b} liter dipakai untuk mengepel lantai. Berapa liter air yang tersisa?`,
+  },
+  {
+    op: '-',
+    unit: 'meter',
+    text: (a, b) =>
+      `Kak Sinta mempunyai kain sepanjang ${a} meter. Kain itu dipotong ${b} meter untuk membuat taplak. Berapa meter sisa kainnya?`,
+  },
+];
+
+function meta(category: QuestionCategory, difficulty: Difficulty) {
   return {
     damage: GAME_CONFIG.DAMAGE[difficulty],
-    timeLimit: GAME_CONFIG.TIMER[difficulty],
+    timeLimit:
+      category === 'fraction_story' ? GAME_CONFIG.TIME_LIMIT.story : GAME_CONFIG.TIME_LIMIT.standard,
   };
 }
 
-export function generateAdditionQuestion(difficulty: Difficulty = 'easy'): Question {
-  let a: number;
-  let b: number;
-  if (difficulty === 'easy') {
-    a = randInt(10, 99);
-    b = randInt(10, 99);
-  } else if (difficulty === 'normal') {
-    a = randInt(100, 499);
-    b = randInt(100, 499);
+/**
+ * Four answer choices with distinct values: the answer plus common mistakes
+ * (adding denominators, forgetting to flip) and near-miss values.
+ */
+export function buildOptions(
+  eq: Pick<FracEquation, 'left' | 'op' | 'right'> & Partial<Pick<FracEquation, 'leftText' | 'rightText'>>,
+  answer: Frac,
+): string[] {
+  const { op } = eq;
+  // Mistakes are modelled on the numbers as written (2/4 stays 2/4), not the simplified value.
+  const left = (eq.leftText && writtenFrac(eq.leftText)) || eq.left;
+  const right = (eq.rightText && writtenFrac(eq.rightText)) || eq.right;
+  const common = lcm(left.d, right.d);
+  const mistakes: Frac[] = [];
+  const nearMisses: Frac[] = [];
+  const tryPush = (list: Frac[], n: number, d: number) => {
+    if (Number.isInteger(n) && Number.isInteger(d) && n > 0 && d > 0) list.push(frac(n, d));
+  };
+
+  if (op === '+') {
+    tryPush(mistakes, left.n + right.n, left.d + right.d);
+    tryPush(mistakes, left.n * (common / left.d) + right.n, common);
+  } else if (op === '-') {
+    tryPush(mistakes, left.n - right.n, left.d - right.d);
+    tryPush(mistakes, left.n * (common / left.d) - right.n, common);
+  } else if (op === '×') {
+    tryPush(mistakes, left.n * right.n, left.d + right.d);
+    tryPush(mistakes, left.n * right.d, left.d * right.n);
   } else {
-    a = randInt(200, 999);
-    b = randInt(200, 999);
+    tryPush(mistakes, left.n * right.n, left.d * right.d);
+    tryPush(mistakes, answer.d, answer.n);
   }
-  const answer = a + b;
-  const options = uniqueOptions(String(answer), [
-    String(answer + 10),
-    String(answer - 10),
-    String(answer + 1),
-    String(a + b + 20),
-    String(a + b - 20),
-  ]);
-  return {
-    id: Date.now() + randInt(1, 9999),
-    level: 1,
-    category: 'addition',
-    difficulty,
-    question: `${a} + ${b} = ?`,
-    options,
-    answer: String(answer),
-    explanation: `${a} + ${b} = ${answer}`,
-    ...meta(difficulty),
-  };
-}
 
-export function generateSubtractionQuestion(difficulty: Difficulty = 'easy'): Question {
-  let a: number;
-  let b: number;
-  if (difficulty === 'easy') {
-    a = randInt(20, 99);
-    b = randInt(1, a);
-  } else if (difficulty === 'normal') {
-    a = randInt(100, 500);
-    b = randInt(10, a);
-  } else {
-    a = randInt(300, 999);
-    b = randInt(50, a);
+  const stepDen = Math.max(common, answer.d);
+  for (const k of [1, 2]) {
+    nearMisses.push(addFrac(answer, frac(k, stepDen)));
+    const lower = subFrac(answer, frac(k, stepDen));
+    if (lower.n > 0) nearMisses.push(lower);
   }
-  const answer = a - b;
-  const options = uniqueOptions(String(answer), [
-    String(answer + 10),
-    String(Math.max(0, answer - 10)),
-    String(a + b),
-    String(Math.abs(b - a)),
-  ]);
-  return {
-    id: Date.now() + randInt(1, 9999),
-    level: 2,
-    category: 'subtraction',
-    difficulty,
-    question: `${a} − ${b} = ?`,
-    options,
-    answer: String(answer),
-    explanation: `${a} − ${b} = ${answer}`,
-    ...meta(difficulty),
-  };
-}
+  nearMisses.push(addFrac(answer, frac(1, 1)));
+  const minusOne = subFrac(answer, frac(1, 1));
+  if (minusOne.n > 0) nearMisses.push(minusOne);
 
-export function generateMultiplicationQuestion(difficulty: Difficulty = 'normal'): Question {
-  let a: number;
-  let b: number;
-  if (difficulty === 'easy') {
-    a = randInt(2, 9);
-    b = randInt(2, 9);
-  } else if (difficulty === 'normal') {
-    a = randInt(6, 12);
-    b = randInt(3, 12);
-  } else {
-    a = randInt(11, 25);
-    b = randInt(4, 12);
+  const chosen: Frac[] = [];
+  const accept = (f: Frac) => {
+    if (chosen.length >= 3) return;
+    if (f.n <= 0 || fracEquals(f, answer)) return;
+    if (chosen.some((c) => fracEquals(c, f))) return;
+    chosen.push(f);
+  };
+
+  shuffle(mistakes).slice(0, 2).forEach(accept);
+  shuffle(nearMisses).forEach(accept);
+  for (let k = 3; chosen.length < 3; k += 1) {
+    accept(addFrac(answer, frac(k, stepDen)));
   }
-  const answer = a * b;
-  const options = uniqueOptions(String(answer), [
-    String(answer + a),
-    String(answer - a),
-    String(a * (b + 1)),
-    String(a * Math.max(1, b - 1)),
-    String((a + 1) * b),
-  ]);
+
+  return shuffle([answer, ...chosen].map(formatFrac));
+}
+
+function toQuestion(
+  category: QuestionCategory,
+  difficulty: Difficulty,
+  built: BuiltProblem,
+  story?: StoryTemplate,
+): Question {
+  const equationLine = `${built.leftText} ${built.op} ${built.rightText} = ?`;
+  const eq = parseEquation(equationLine);
+  if (!eq) throw new Error(`Soal tidak valid: ${equationLine}`);
+  const answer = evaluateEquation(eq);
+  const answerText = formatFrac(answer);
+
   return {
-    id: Date.now() + randInt(1, 9999),
-    level: 3,
-    category: 'multiplication',
+    id: Date.now() + randInt(1, 99999),
+    level: LEVEL_OF[category],
+    category,
     difficulty,
-    question: `${a} × ${b} = ?`,
-    options,
-    answer: String(answer),
-    explanation: `${a} × ${b} = ${answer}`,
-    ...meta(difficulty),
+    question: story
+      ? `${story.text(built.leftText, built.rightText)}\n${equationLine}`
+      : equationLine,
+    options: buildOptions(eq, answer),
+    answer: answerText,
+    explanation: story
+      ? `${built.explanation} Jadi hasilnya ${answerText} ${story.unit}.`
+      : built.explanation,
+    ...meta(category, difficulty),
   };
 }
 
-export function generateDivisionQuestion(difficulty: Difficulty = 'normal'): Question {
-  let b: number;
-  let answer: number;
-  if (difficulty === 'easy') {
-    b = randInt(2, 9);
-    answer = randInt(2, 9);
-  } else if (difficulty === 'normal') {
-    b = randInt(3, 12);
-    answer = randInt(4, 15);
-  } else {
-    b = randInt(5, 15);
-    answer = randInt(6, 20);
-  }
-  const a = b * answer;
-  const options = uniqueOptions(String(answer), [
-    String(answer + 1),
-    String(Math.max(1, answer - 1)),
-    String(answer + 2),
-    String(b),
-  ]);
-  return {
-    id: Date.now() + randInt(1, 9999),
-    level: 4,
-    category: 'division',
-    difficulty,
-    question: `${a} ÷ ${b} = ?`,
-    options,
-    answer: String(answer),
-    explanation: `${a} ÷ ${b} = ${answer}`,
-    ...meta(difficulty),
-  };
+export function generateLikeFractionQuestion(difficulty: Difficulty = 'easy'): Question {
+  return toQuestion('fraction_like', difficulty, buildLike(difficulty));
 }
 
-export function generateMixedQuestion(difficulty: Difficulty = 'normal'): Question {
-  const a = randInt(2, 12);
-  const b = randInt(2, 9);
-  const c = randInt(5, 40);
-  const answer = a * b + c;
-  const options = uniqueOptions(String(answer), [
-    String(a * b - c > 0 ? a * b - c : a * b + c + 5),
-    String(a + b + c),
-    String(a * (b + c)),
-    String(answer + 10),
-  ]);
-  return {
-    id: Date.now() + randInt(1, 9999),
-    level: 5,
-    category: 'mixed',
-    difficulty,
-    question: `${a} × ${b} + ${c} = ?`,
-    options,
-    answer: String(answer),
-    explanation: `${a} × ${b} = ${a * b}, lalu ${a * b} + ${c} = ${answer}`,
-    ...meta(difficulty),
-  };
+export function generateUnlikeFractionQuestion(difficulty: Difficulty = 'normal'): Question {
+  return toQuestion('fraction_unlike', difficulty, buildUnlike(difficulty));
 }
 
-export function generateFractionQuestion(difficulty: Difficulty = 'hard'): Question {
-  const denom = [2, 3, 4, 5, 6, 8][randInt(0, 5)];
-  const n1 = randInt(1, denom - 1);
-  const n2 = randInt(1, denom - n1);
-  const answerNum = n1 + n2;
-  const answer =
-    answerNum === denom ? '1' : answerNum > denom ? `1 ${answerNum - denom}/${denom}` : `${answerNum}/${denom}`;
-  const wrong1 = `${Math.max(1, answerNum - 1)}/${denom}`;
-  const wrong2 = `${answerNum + 1}/${denom}`;
-  const wrong3 = `${n1 + n2}/${denom + 1}`;
-  const options = uniqueOptions(answer, [wrong1, wrong2, wrong3, `${n1}/${denom}`]);
-  return {
-    id: Date.now() + randInt(1, 9999),
-    level: 6,
-    category: 'fraction',
-    difficulty,
-    question: `${n1}/${denom} + ${n2}/${denom} = ?`,
-    options,
-    answer,
-    explanation: `${n1}/${denom} + ${n2}/${denom} = ${answerNum}/${denom}${answerNum === denom ? ' = 1' : ''}`,
-    ...meta(difficulty),
-  };
+export function generateMixedFractionQuestion(difficulty: Difficulty = 'normal'): Question {
+  return toQuestion('fraction_mixed', difficulty, buildMixed(difficulty));
 }
 
-export function generateDecimalQuestion(difficulty: Difficulty = 'hard'): Question {
-  const a = (randInt(10, 99) / 10).toFixed(1);
-  const b = (randInt(10, 99) / 10).toFixed(1);
-  const answer = (Number(a) + Number(b)).toFixed(1);
-  const options = uniqueOptions(answer, [
-    (Number(answer) + 0.1).toFixed(1),
-    (Number(answer) - 0.1).toFixed(1),
-    (Number(answer) + 1).toFixed(1),
-    (Number(a) * Number(b)).toFixed(1),
-  ]);
-  return {
-    id: Date.now() + randInt(1, 9999),
-    level: 7,
-    category: 'decimal',
-    difficulty,
-    question: `${a} + ${b} = ?`,
-    options,
-    answer,
-    explanation: `${a} + ${b} = ${answer}`,
-    ...meta(difficulty),
-  };
-}
-
-export function generateStoryQuestion(difficulty: Difficulty = 'hard'): Question {
-  const templates = [
-    () => {
-      const pensil = randInt(12, 48);
-      const box = randInt(3, 8);
-      const answer = pensil * box;
-      return {
-        question: `Sebuah toko punya ${box} kotak pensil. Tiap kotak berisi ${pensil} pensil. Berapa total pensil?`,
-        answer: String(answer),
-        explanation: `${box} × ${pensil} = ${answer}`,
-        distractors: [String(answer + pensil), String(pensil + box), String(answer - box)],
-      };
-    },
-    () => {
-      const total = randInt(40, 120);
-      const given = randInt(10, Math.floor(total / 2));
-      const answer = total - given;
-      return {
-        question: `Ani punya ${total} kelereng. Ia memberi ${given} kelereng ke Budi. Berapa sisa kelereng Ani?`,
-        answer: String(answer),
-        explanation: `${total} − ${given} = ${answer}`,
-        distractors: [String(total + given), String(given), String(answer + 5)],
-      };
-    },
-    () => {
-      const pages = randInt(5, 20);
-      const days = randInt(3, 7);
-      const answer = pages * days;
-      return {
-        question: `Rani membaca ${pages} halaman setiap hari selama ${days} hari. Berapa total halaman yang dibaca?`,
-        answer: String(answer),
-        explanation: `${pages} × ${days} = ${answer}`,
-        distractors: [String(pages + days), String(answer + pages), String(Math.max(1, answer - days))],
-      };
-    },
-  ];
-  const t = templates[randInt(0, templates.length - 1)]();
-  return {
-    id: Date.now() + randInt(1, 9999),
-    level: 8,
-    category: 'story',
-    difficulty,
-    question: t.question,
-    options: uniqueOptions(t.answer, t.distractors),
-    answer: t.answer,
-    explanation: t.explanation,
-    ...meta(difficulty),
-  };
+export function generateFractionStoryQuestion(difficulty: Difficulty = 'hard'): Question {
+  const story = pick(STORIES);
+  const builder =
+    difficulty === 'easy' ? buildLike : difficulty === 'normal' ? buildUnlike : buildMixed;
+  return toQuestion('fraction_story', difficulty, builder(difficulty, story.op), story);
 }
 
 const GENERATORS: Record<QuestionCategory, (d: Difficulty) => Question> = {
-  addition: generateAdditionQuestion,
-  subtraction: generateSubtractionQuestion,
-  multiplication: generateMultiplicationQuestion,
-  division: generateDivisionQuestion,
-  mixed: generateMixedQuestion,
-  fraction: generateFractionQuestion,
-  decimal: generateDecimalQuestion,
-  story: generateStoryQuestion,
-  fraction_like: generateFractionQuestion,
-  fraction_unlike: generateFractionQuestion,
-  fraction_mixed: generateFractionQuestion,
-  fraction_story: generateStoryQuestion,
-  fraction_mult_div: generateFractionQuestion,
-  fraction_complex: generateMixedQuestion,
-  fraction_story_advanced: generateStoryQuestion,
-  fraction_boss: generateFractionQuestion,
+  fraction_like: generateLikeFractionQuestion,
+  fraction_unlike: generateUnlikeFractionQuestion,
+  fraction_mixed: generateMixedFractionQuestion,
+  fraction_story: generateFractionStoryQuestion,
 };
 
 export function generateQuestionByCategory(
   category: QuestionCategory,
   difficulty: Difficulty,
 ): Question {
-  const gen = GENERATORS[category] ?? generateFractionQuestion;
+  const gen = GENERATORS[category] ?? generateLikeFractionQuestion;
   return gen(difficulty);
 }
 
 export function validateQuestion(q: Question): boolean {
   if (!q.question || !q.answer || !q.options || q.options.length !== 4) return false;
   if (!q.options.includes(q.answer)) return false;
-  if (new Set(q.options).size !== 4) return false;
+
+  const values = q.options.map(parseFrac);
+  if (values.some((v) => !v || v.n <= 0)) return false;
+  for (let i = 0; i < values.length; i += 1) {
+    for (let j = i + 1; j < values.length; j += 1) {
+      if (fracEquals(values[i] as Frac, values[j] as Frac)) return false;
+    }
+  }
+
+  const eq = parseEquation(q.question);
+  const answer = parseFrac(q.answer);
+  if (eq && answer && !fracEquals(evaluateEquation(eq), answer)) return false;
   return true;
 }

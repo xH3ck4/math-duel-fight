@@ -15,7 +15,7 @@ export function QuestionCard({ question, turnLabel }: Props) {
       <View style={styles.turnBadge}>
         <Text style={styles.turn}>{turnLabel}</Text>
       </View>
-      <VerticalMathView questionText={question} />
+      <VerticalMathView questionText={question} hideStoryEquation />
     </View>
   );
 }

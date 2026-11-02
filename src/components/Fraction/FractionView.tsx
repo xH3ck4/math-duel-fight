@@ -166,6 +166,11 @@ export function FractionText({
 
 interface VerticalEquationProps {
   questionText: string;
+  /**
+   * For story problems, show only the narrative so the student has to work out
+   * the operation themselves. Teaching material keeps the equation visible.
+   */
+  hideStoryEquation?: boolean;
 }
 
 /**
@@ -176,8 +181,25 @@ interface VerticalEquationProps {
  *      Term 1    [op]    Term 2    =    [ ? ]
  * where each fraction is rendered with numerator over denominator.
  */
-export function VerticalMathView({ questionText }: VerticalEquationProps) {
+export function VerticalMathView({ questionText, hideStoryEquation = false }: VerticalEquationProps) {
   const parsed = parseVerticalProblem(questionText);
+
+  if (hideStoryEquation && parsed?.storyText) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.storyCard}>
+          <View style={styles.storyHeader}>
+            <Text style={styles.storyBadge}>📖 SOAL CERITA</Text>
+          </View>
+          <FractionText
+            text={parsed.storyText}
+            style={styles.storyTextLarge}
+            fractionColor={colors.gold}
+          />
+        </View>
+      </View>
+    );
+  }
 
   if (!parsed || !parsed.operator) {
     return (
@@ -280,6 +302,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textInverse,
     lineHeight: 16,
+  },
+  storyTextLarge: {
+    ...typography.body,
+    fontSize: 15,
+    color: colors.textInverse,
+    lineHeight: 21,
   },
   equationCard: {
     alignItems: 'center',
